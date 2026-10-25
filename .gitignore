@@ -1,0 +1,38 @@
+# Source and processed datasets
+/data/
+
+# Python
+__pycache__/
+*.py[cod]
+
+# Virtual environments
+.venv/
+venv/
+
+# Secrets and credentials
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+credentials.json
+*credentials*
+secrets.*
+*secret*
+*api_key*
+*apikey*
+*password*
+*passwd*
+*.token
+*.p8
+.aws/
+.ssh/
+
+# Jupyter and generated files
+.ipynb_checkpoints/
+*.log
+Thumbs.db
+.DS_Store
+reports/~$*
