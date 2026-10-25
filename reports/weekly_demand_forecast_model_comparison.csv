@@ -1,0 +1,4 @@
+model,weekly_total_mae,holdout_weeks,first_holdout_week,last_holdout_week,training_rows
+LinearRegression,70614.64935432955,10,136,145,423727
+RandomForestRegressor,28735.959548525898,10,136,145,423727
+Last training week baseline,41012.8,10,136,145,423727

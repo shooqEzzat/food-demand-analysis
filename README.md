@@ -14,7 +14,7 @@ The project addresses these questions using the available order records:
 - How are order counts associated with email promotion, homepage featuring, and signed price reductions?
 - Which meals have the highest total demand or the greatest relative week-to-week variability?
 
-The files do not identify actual calendar dates or establish geographic representativeness, so the analysis does not infer either.
+The files do not identify actual calendar dates or establish geographic representativeness, so the analysis does not infer either. The project has two distinct forecasts: a weekly-total workflow and a row-level meal-center-week workflow. The latter predicts `num_orders` for each `test.csv` row, compares LinearRegression and RandomForestRegressor on a chronological holdout, and selects by row-level MAE.
 
 ## Key findings
 
@@ -24,7 +24,7 @@ The files do not identify actual calendar dates or establish geographic represen
 
 ## Tools and methods
 
-The project uses Python, Pandas, NumPy, Matplotlib, SciPy, and Jupyter notebooks. Preparation validates source schemas, missing values, duplicates, join keys, and merge integrity. Exploratory work aggregates weekly, category, center, and meal demand; calculates estimated revenue and signed discount rates; uses Mann–Whitney U and Spearman rank correlation for exploratory association tests; and visualizes results with Matplotlib. Meal demand volatility is summarized by the coefficient of variation across observed meal-weeks without imputing missing combinations as zero.
+The project uses Python, Pandas, NumPy, Matplotlib, SciPy, scikit-learn, and Jupyter notebooks. Preparation validates source schemas, missing values, duplicates, join keys, and merge integrity. Exploratory work aggregates weekly, category, center, and meal demand; calculates estimated revenue and signed discount rates; uses Mann–Whitney U and Spearman rank correlation for exploratory association tests; and visualizes results with Matplotlib. Forecast models compare weekly MAE with a last-observed-week baseline. Meal demand volatility is summarized by the coefficient of variation across observed meal-weeks without imputing missing combinations as zero.
 
 ## Project structure
 
@@ -48,7 +48,7 @@ The project uses Python, Pandas, NumPy, Matplotlib, SciPy, and Jupyter notebooks
 └── requirements.txt         # Python dependencies
 ```
 
-Place the original `train.csv`, `test.csv`, `meal_info.csv`, and `fulfilment_center_info.csv` files in `data/raw/`. The test set is inspected for schema only; it is not used to calculate actual demand because it has no `num_orders`.
+Place the original `train.csv`, `test.csv`, `meal_info.csv`, and `fulfilment_center_info.csv` files in `data/raw/`. The test set has no `num_orders`; it is used only to generate forecasts, not to calculate actual demand or test-set accuracy. The row-level meal-center-week prediction output is `reports/meal_center_demand_predictions.csv`.
 
 ## How to reproduce the analysis
 
@@ -65,14 +65,16 @@ Run the notebooks in order, using the same environment as their Jupyter kernel:
 
 ```powershell
 $env:PYTHONUTF8 = '1'
-python -m jupyter execute --inplace notebooks/data_preparation.ipynb
-python -m jupyter execute --inplace notebooks/analysis.ipynb
-python -m jupyter execute --inplace notebooks/visualizations.ipynb
+python -m nbconvert --to notebook --execute --inplace notebooks/data_preparation.ipynb
+python -m nbconvert --to notebook --execute --inplace notebooks/analysis.ipynb
+python -m nbconvert --to notebook --execute --inplace notebooks/visualizations.ipynb
+python -m nbconvert --to notebook --execute --inplace notebooks/forecasting.ipynb
 ```
 
 The UTF-8 mode setting preserves non-ASCII notebook text and generated documentation when executing from Windows PowerShell.
 
 The preparation notebook reads the raw files without changing them and writes `data/processed/prepared_train.csv` and `docs/decisions_cleaning.md`. The analysis and visualization notebooks then use that prepared dataset and the resulting summaries.
+The forecasting notebook separately validates and enriches the raw training and test rows, performs a chronological model comparison, and writes its forecasts and validation chart. It does not overwrite the descriptive analysis outputs or the separate weekly-total forecast.
 
 ## Outputs
 
@@ -81,6 +83,9 @@ The preparation notebook reads the raw files without changing them and writes `d
 - Reusable aggregate CSV files: `reports/*.csv`
 - PNG visualizations: `reports/figures/*.png`
 - Prepared training dataset: `data/processed/prepared_train.csv`
+- Meal-center-week demand forecasts: `reports/meal_center_demand_predictions.csv`
+- Forecast comparison, assumptions, and client guidance: `reports/forecasting_summary.md`
+- Validation actual-versus-predicted chart: `reports/figures/forecast_validation_actual_vs_predicted.png`
 
 ## Use of AI
 

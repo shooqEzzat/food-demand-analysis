@@ -7,6 +7,8 @@ The top 22 meals contribute 81.18% of orders, indicating that demand is concentr
 Email-promotion observations had 147.84% higher mean orders, but this observational comparison does not establish a promotional effect.  
 Meal 1885 is both high-demand and relatively stable: 8,346,246 total orders and a weekly-demand CV of 0.191.
 
+The weekly forecasting comparison selected a Random Forest: its MAE was **28,735.96 orders** across the final 10 observed training weeks, compared with **70,614.65** for Linear Regression and **41,012.80** for a last-training-week baseline. These are measured errors on the temporal holdout, not a guarantee of future accuracy. The selected model produced row-level predictions for all 32,573 rows in `test.csv`; that file has no observed `num_orders`, so no test-file MAE is available.
+
 ## Q1 — Weekly demand
 
 The prepared training data contains **119,557,485 orders** across **145 observed weeks**, averaging **824,534.38 orders per observed week**. Week **48** had the highest total (**1,303,457**), while Week **62** had the lowest (**380,065**). The first-to-last observed-week total changed by **−15.19%**; this endpoint comparison does not establish a sustained trend or explain its cause.
@@ -72,6 +74,18 @@ Total order volume and volatility answer different questions: total orders measu
 2. **Decision:** Review replenishment buffers and operational planning separately for high-volume stable meals and high-CV meals. **Supporting evidence:** meal 1885 has **8,346,246** orders and CV **0.191**, while meal 2444 has CV **1.205** and **942,568** orders. **Success metric:** meal-level stockout rate and forecast error, reported separately by demand/volatility group. **Measurement approach:** establish a baseline from observed weeks, monitor comparable future weeks, and avoid interpreting unobserved meal-weeks as zero demand.
 3. **Decision:** Before increasing promotion investment, consider a controlled promotion test with a pre-defined comparison design. **Supporting evidence:** observed email-promotion rows have **147.84%** higher mean orders, but repeated observations and confounding prevent a causal interpretation. **Success metric:** incremental orders per eligible meal-center-week and incremental revenue or margin per promotion cost, as defined by the business. **Measurement approach:** randomize promotion assignment among comparable eligible meal-center-week units where feasible, account for repeated units in the analysis, and compare with a concurrent control before deciding whether to scale.
 
+4. **Decision:** Use the weekly forecast as one input to ingredient purchasing, inventory buffers, and staffing schedules. **Supporting evidence:** on the final 10 observed training weeks, the selected Random Forest's weekly-total MAE was **28,735.96 orders**. **Practical use:** compare forecasted weekly demand with current stock, supplier lead times, shelf life, and staffing capacity; prioritize closer monitoring and flexible replenishment where forecast uncertainty or meal-level variation is high. **Caution:** forecasts support planning decisions but do not guarantee demand; verify them against actual orders and operational constraints each week.
+
+## Weekly demand forecasting
+
+Weekly demand is defined as the sum of `num_orders` across all meal-center rows with the same observed `week`. Week values are identifiers, not calendar dates. The model learns row-level orders from `center_id`, `meal_id`, week, prices, and promotion/featured flags; center and meal IDs are one-hot encoded and `id` is excluded. Row predictions are summed to weekly totals for evaluation.
+
+The latest 10 training weeks (weeks **136–145**) were kept out of model fitting. On these same weeks, **LinearRegression MAE was 70,614.65 orders**, **RandomForestRegressor MAE was 28,735.96**, and the baseline that repeats week 135's total had MAE **41,012.80**. MAE is the mean absolute difference between actual and predicted weekly totals, in orders; lower is better. The Random Forest was selected because it had the lowest holdout MAE among the two requested machine-learning models. It also outperformed the simple baseline on this holdout, but this limited comparison does not ensure future performance.
+
+![Actual and predicted weekly demand for the final 10 training weeks.](figures/weekly_demand_forecast_holdout.png)
+
+The selected model was refit on all 456,548 training rows and generated `predicted_num_orders` for each of the 32,573 rows in `test.csv`. Test weeks are aggregated separately for planning reference. The test file has no actual `num_orders`, so its accuracy cannot be measured here.
+
 ## Limitations and interpretation
 
 - Week values are week identifiers; the files do not provide actual calendar dates. The data also does not establish specific city coverage or geographic representativeness.
@@ -80,5 +94,6 @@ Total order volume and volatility answer different questions: total orders measu
 - Promotion comparisons pool repeated weekly observations and may be confounded by price, featured placement, timing, or other factors. The ordinary Mann–Whitney independence assumption is not satisfied, so nominal p-values are exploratory.
 - The discount-demand correlation is observational and does not prove that discounting changes demand.
 - Center comparisons use observed-week averages but are not adjusted for operating area or product mix.
+- Forecast features contain no prior realized demand history, actual calendar dates, availability/stockout information, or external context such as holidays and weather. The 10-week holdout evaluates weekly aggregate totals only; it does not guarantee row-level accuracy or generalization to later operating conditions.
 
 Reported figures above are observed summaries or exploratory associations. Possible explanations are not established by this analysis, and no causal effect is claimed.

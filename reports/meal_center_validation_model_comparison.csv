@@ -1,0 +1,4 @@
+model,mae,n_validation_rows,note
+Previous-week meal-center baseline,81.78281325012001,31245,Uses actual previous-week demand for the same meal and center.
+LinearRegression,126.56872587494469,31245,Chronological holdout; model fitted on weeks before validation.
+RandomForestRegressor,89.50807044631988,31245,Chronological holdout; model fitted on weeks before validation.
